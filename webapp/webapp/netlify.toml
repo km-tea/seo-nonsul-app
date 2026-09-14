@@ -1,0 +1,18 @@
+[build]
+  command = "npm run build"
+  publish = "dist"
+  functions = "netlify/functions"
+
+[functions]
+  node_bundler = "esbuild"
+
+# netlify/functions 안의 package.json(jsonwebtoken, bcryptjs 등)이 빌드 시
+# 자동으로 설치되도록 해주는 공식 플러그인. 이게 없으면 함수 배포 시
+# "Could not resolve 'jsonwebtoken'" 같은 오류가 납니다.
+[[plugins]]
+  package = "@netlify/plugin-functions-install-core"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
