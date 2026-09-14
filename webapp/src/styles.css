@@ -475,6 +475,131 @@ button {
   margin-top: 10px;
 }
 
+.answer-hint {
+  color: var(--ink-soft);
+  font-size: 13px;
+  margin: 4px 0 10px;
+}
+
+/* ---------- 답 칸(여러 개, 글/표 전환) ---------- */
+
+.multipart-answer {
+  margin-top: 6px;
+}
+
+.multipart-row {
+  margin-bottom: 16px;
+}
+
+.answer-block-item {
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  background: #fffdf7;
+}
+
+.answer-block-label {
+  font-size: 14px;
+  font-weight: 500;
+  margin-bottom: 10px;
+}
+
+.answer-type-toggle {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.toggle-chip {
+  padding: 4px 12px;
+  border: 1px solid var(--rule);
+  border-radius: 999px;
+  background: var(--paper-dim);
+  color: var(--ink-soft);
+  font-size: 12px;
+}
+
+.toggle-chip.active {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--paper);
+}
+
+.answer-block-item textarea {
+  min-height: 120px;
+}
+
+.remove-part-btn {
+  background: none;
+  border: none;
+  color: var(--red);
+  font-size: 12px;
+  padding: 6px 2px 0;
+  text-decoration: underline;
+}
+
+.add-part-btn {
+  width: auto;
+  margin-top: 4px;
+}
+
+/* ---------- 표 입력 도구 ---------- */
+
+.table-input-wrap {
+  overflow-x: auto;
+}
+
+.table-input {
+  border-collapse: collapse;
+  width: 100%;
+  margin-bottom: 10px;
+}
+
+.table-input th,
+.table-input td {
+  border: 1px solid var(--rule);
+  padding: 4px;
+}
+
+.table-input input {
+  width: 100%;
+  min-width: 90px;
+  border: none;
+  background: transparent;
+  padding: 6px 8px;
+  font-size: 14px;
+  font-family: inherit;
+  color: var(--ink);
+}
+
+.table-input th input {
+  font-weight: 600;
+  background: var(--paper-dim);
+}
+
+.table-input input:focus {
+  outline: 1px solid var(--gold);
+  outline-offset: -1px;
+}
+
+.table-input-controls {
+  display: flex;
+  gap: 6px;
+}
+
+.table-input-controls button {
+  padding: 4px 10px;
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  background: var(--paper-dim);
+  color: var(--ink-soft);
+  font-size: 12px;
+}
+
+.table-input-controls button:disabled {
+  opacity: 0.4;
+}
+
 /* ---------- 제시문/채점기준 이미지 ---------- */
 
 .image-grid-wrap {

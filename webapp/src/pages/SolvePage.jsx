@@ -4,6 +4,41 @@ import { useAuth } from "../context/AuthContext.jsx";
 import { getItemShape } from "../lib/itemShape.js";
 import TextBlock from "../components/TextBlock.jsx";
 import ImageGrid from "../components/ImageGrid.jsx";
+import MultiPartAnswer, { emptyPart } from "../components/MultiPartAnswer.jsx";
+
+function serializeBlock(block) {
+  if (!block) return "";
+  if (block.type === "table" && block.table) {
+    const { headers, rows } = block.table;
+    const headerLine = "| " + headers.join(" | ") + " |";
+    const sepLine = "| " + headers.map(() => "---").join(" | ") + " |";
+    const rowLines = rows.map((r) => "| " + r.join(" | ") + " |");
+    return [headerLine, sepLine, ...rowLines].join("\n");
+  }
+  return (block.text || "").trim();
+}
+
+function serializeParts(parts, labels) {
+  return (parts || [])
+    .map((p, i) => {
+      const body = serializeBlock(p);
+      if (!body) return "";
+      const label = labels && labels[i] ? `${i + 1}. ${labels[i]}` : `[답 ${i + 1}]`;
+      return `${label}\n${body}`;
+    })
+    .filter(Boolean)
+    .join("\n\n");
+}
+
+function partsHaveContent(parts) {
+  return (parts || []).some((p) => {
+    if (!p) return false;
+    if (p.type === "table" && p.table) {
+      return p.table.rows.some((row) => row.some((cell) => cell && cell.trim()));
+    }
+    return !!(p.text && p.text.trim());
+  });
+}
 
 export default function SolvePage() {
   const { itemId } = useParams();
@@ -15,9 +50,10 @@ export default function SolvePage() {
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
-  // 단일 답안(raw_content, direct) / 단계별 답안(staged) 공용 상태
-  const [answer, setAnswer] = useState("");
-  const [stageAnswers, setStageAnswers] = useState({});
+  // raw_content / direct / image_only 용
+  const [parts, setParts] = useState([emptyPart()]);
+  // staged 용: { [stageNum]: parts[] }
+  const [stagePartsMap, setStagePartsMap] = useState({});
 
   useEffect(() => {
     let cancelled = false;
@@ -34,6 +70,20 @@ export default function SolvePage() {
         setError("문항을 불러오지 못했습니다: " + err.message);
       } else {
         setItem(data);
+        const shape = getItemShape(data);
+        if (shape === "direct" && data.question?.conditions?.length) {
+          setParts(data.question.conditions.map(() => emptyPart()));
+        } else {
+          setParts([emptyPart()]);
+        }
+        if (shape === "staged") {
+          const map = {};
+          (data.staged_questions || []).forEach((s) => {
+            const n = s.conditions && s.conditions.length ? s.conditions.length : 1;
+            map[s.stage] = Array.from({ length: n }, emptyPart);
+          });
+          setStagePartsMap(map);
+        }
       }
       setLoading(false);
     }
@@ -48,10 +98,20 @@ export default function SolvePage() {
     setError("");
     try {
       const shape = getItemShape(item);
-      const payload =
-        shape === "staged"
-          ? { item_id: itemId, stage_answers: stageAnswers }
-          : { item_id: itemId, answer_text: answer };
+      let payload;
+      if (shape === "staged") {
+        const stage_answers = {};
+        (item.staged_questions || []).forEach((s) => {
+          const stageParts = stagePartsMap[s.stage] || [];
+          const labels = s.conditions && s.conditions.length ? s.conditions : null;
+          stage_answers[s.stage] = serializeParts(stageParts, labels);
+        });
+        payload = { item_id: itemId, stage_answers };
+      } else {
+        const labels = shape === "direct" ? item.question?.conditions : null;
+        const answer_text = serializeParts(parts, labels);
+        payload = { item_id: itemId, answer_text };
+      }
 
       const res = await fetch("/.netlify/functions/grade-answer", {
         method: "POST",
@@ -79,10 +139,13 @@ export default function SolvePage() {
   if (!item) return null;
 
   const shape = getItemShape(item);
-  const canSubmit =
-    shape === "staged"
-      ? Object.values(stageAnswers).some((v) => v && v.trim().length > 0)
-      : answer.trim().length > 0;
+
+  let canSubmit = false;
+  if (shape === "staged") {
+    canSubmit = Object.values(stagePartsMap).some((p) => partsHaveContent(p));
+  } else {
+    canSubmit = partsHaveContent(parts);
+  }
 
   return (
     <div>
@@ -91,24 +154,23 @@ export default function SolvePage() {
         <h1>{item.title}</h1>
       </div>
 
-      {shape === "raw_content" && (
-        <RawContentSolver item={item} answer={answer} setAnswer={setAnswer} />
-      )}
+      {shape === "raw_content" && <RawContentSolver item={item} parts={parts} setParts={setParts} />}
       {shape === "staged" && (
-        <StagedSolver item={item} stageAnswers={stageAnswers} setStageAnswers={setStageAnswers} />
+        <StagedSolver item={item} stagePartsMap={stagePartsMap} setStagePartsMap={setStagePartsMap} />
       )}
-      {shape === "direct" && (
-        <DirectSolver item={item} answer={answer} setAnswer={setAnswer} />
-      )}
-      {shape === "image_only" && (
-        <ImageOnlySolver item={item} answer={answer} setAnswer={setAnswer} />
-      )}
+      {shape === "direct" && <DirectSolver item={item} parts={parts} setParts={setParts} />}
+      {shape === "image_only" && <ImageOnlySolver item={item} parts={parts} setParts={setParts} />}
       {shape === "unknown" && <p>이 문항은 아직 준비 중이에요.</p>}
 
       {error && <p className="error-text">{error}</p>}
 
       <div className="submit-row">
-        <button className="btn-primary" style={{ width: "auto" }} onClick={handleSubmit} disabled={!canSubmit || submitting}>
+        <button
+          className="btn-primary"
+          style={{ width: "auto" }}
+          onClick={handleSubmit}
+          disabled={!canSubmit || submitting}
+        >
           {submitting ? "채점하는 중..." : "제출하고 채점받기"}
         </button>
       </div>
@@ -116,13 +178,8 @@ export default function SolvePage() {
   );
 }
 
-function RawContentSolver({ item, answer, setAnswer }) {
+function RawContentSolver({ item, parts, setParts }) {
   const rc = item.raw_content || {};
-  // raw_content는 두 가지 스키마가 섞여 있다:
-  //  - KICE/경기 스타일(평가문항 키): 텍스트가 이미 깔끔함
-  //  - 초등 일부 배치(문항 키만): PDF에서 그대로 뽑아내 다소 지저분함
-  // 이미지가 있으면 항상 이미지를 먼저 시도하고, 실제로 로드에 실패하면(파일명이
-  // 안 맞는 등) 자동으로 텍스트로 대체한다.
   const cleanText = rc.평가문항;
   const messyText = rc.문항;
   const fallbackText = cleanText || messyText;
@@ -156,32 +213,35 @@ function RawContentSolver({ item, answer, setAnswer }) {
           )}
         </div>
       )}
-      <div className="field">
-        <label htmlFor="answer">내 답안</label>
-        <textarea id="answer" value={answer} onChange={(e) => setAnswer(e.target.value)} />
-      </div>
+      <p className="answer-hint">
+        문제에 여러 개의 하위 질문이 있다면, 아래 "+ 답 칸 추가"로 나눠서 써 보세요.
+      </p>
+      <MultiPartAnswer mode="manual" parts={parts} setParts={setParts} />
     </div>
   );
 }
 
-function ImageOnlySolver({ item, answer, setAnswer }) {
+function ImageOnlySolver({ item, parts, setParts }) {
   return (
     <div>
       <p className="missing-content-note" style={{ marginTop: 0, marginBottom: 12 }}>
         이 문항은 아래 이미지 안에 문제가 들어있어요. 이미지를 보고 답을 써 보세요.
       </p>
       <ImageGrid filenames={item.stimulus_images} label="문제" />
-      <div className="field">
-        <label htmlFor="answer">내 답안</label>
-        <textarea id="answer" value={answer} onChange={(e) => setAnswer(e.target.value)} />
-      </div>
+      <p className="answer-hint">
+        문제에 여러 개의 하위 질문이 있다면, 아래 "+ 답 칸 추가"로 나눠서 써 보세요. 표를 채워야
+        하면 "표로 쓰기"를 눌러보세요.
+      </p>
+      <MultiPartAnswer mode="manual" parts={parts} setParts={setParts} />
     </div>
   );
 }
 
-function DirectSolver({ item, answer, setAnswer }) {
+function DirectSolver({ item, parts, setParts }) {
   const q = item.question || {};
   const hasContent = !!(q.prompt && q.prompt.trim());
+  const conditions = q.conditions && q.conditions.length ? q.conditions : null;
+
   return (
     <div>
       <div className="stimulus-box">
@@ -195,13 +255,6 @@ function DirectSolver({ item, answer, setAnswer }) {
             </p>
           </>
         )}
-        {q.conditions && q.conditions.length > 0 && (
-          <ul style={{ marginTop: 12, paddingLeft: 20 }}>
-            {q.conditions.map((c, i) => (
-              <li key={i}>{c}</li>
-            ))}
-          </ul>
-        )}
       </div>
       <ImageGrid filenames={item.stimulus_images} label="제시 자료" />
       {item.core_keywords && item.core_keywords.length > 0 && (
@@ -213,21 +266,25 @@ function DirectSolver({ item, answer, setAnswer }) {
           ))}
         </div>
       )}
-      <div className="field">
-        <label htmlFor="answer">내 답안</label>
-        <textarea id="answer" value={answer} onChange={(e) => setAnswer(e.target.value)} />
-      </div>
+      <MultiPartAnswer
+        mode={conditions ? "auto" : "manual"}
+        labels={conditions}
+        parts={parts}
+        setParts={setParts}
+      />
     </div>
   );
 }
 
-function StagedSolver({ item, stageAnswers, setStageAnswers }) {
+function StagedSolver({ item, stagePartsMap, setStagePartsMap }) {
   const stages = item.staged_questions || [];
   return (
     <div>
       <ImageGrid filenames={item.stimulus_images} label="제시 자료" />
       {stages.map((stage) => {
         const hasContent = !!(stage.prompt && stage.prompt.trim());
+        const conditions = stage.conditions && stage.conditions.length ? stage.conditions : null;
+        const stageParts = stagePartsMap[stage.stage] || [emptyPart()];
         return (
           <div className="stage-block" key={stage.stage}>
             <span className="stage-points">{stage.points}점</span>
@@ -239,19 +296,17 @@ function StagedSolver({ item, stageAnswers, setStageAnswers }) {
                 이 단계는 상세 지문이 아직 등록되지 않았어요. 위 제목을 참고해서 답을 써 보세요.
               </p>
             )}
-            {stage.conditions && stage.conditions.length > 0 && (
-              <ul style={{ paddingLeft: 20 }}>
-                {stage.conditions.map((c, i) => (
-                  <li key={i}>{c}</li>
-                ))}
-              </ul>
-            )}
-            <textarea
-              value={stageAnswers[stage.stage] || ""}
-              onChange={(e) =>
-                setStageAnswers((prev) => ({ ...prev, [stage.stage]: e.target.value }))
+            <MultiPartAnswer
+              mode={conditions ? "auto" : "manual"}
+              labels={conditions}
+              parts={stageParts}
+              setParts={(updater) =>
+                setStagePartsMap((prev) => ({
+                  ...prev,
+                  [stage.stage]:
+                    typeof updater === "function" ? updater(prev[stage.stage] || []) : updater,
+                }))
               }
-              placeholder="여기에 답을 써 보세요."
             />
           </div>
         );
