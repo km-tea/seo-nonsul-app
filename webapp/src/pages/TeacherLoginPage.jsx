@@ -69,6 +69,9 @@ export default function TeacherLoginPage() {
       <p className="switch-role-link">
         학생인가요? <Link to="/login">학생 로그인</Link>
       </p>
+      <p className="switch-role-link">
+        처음이신가요? <Link to="/teacher/signup">교사 회원가입</Link>
+      </p>
     </div>
   );
 }

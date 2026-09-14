@@ -179,7 +179,15 @@ ${payload.answer_text || "(작성하지 않음)"}
   };
 }
 
-async function callGemini(parts) {
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+// Gemini 무료 API 키는 분당 요청 수 제한이 있어서, 학생들이 한꺼번에 몰아서
+// 제출하면 429(과다 요청) 오류가 날 수 있다. 바로 실패시키지 않고 잠깐 기다렸다가
+// 몇 번 더 시도해서, 학생이 다시 누를 필요 없이 자동으로 넘어가도록 한다.
+async function callGemini(parts, attempt = 1) {
+  const MAX_ATTEMPTS = 3;
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${process.env.GEMINI_API_KEY}`;
   const res = await fetch(url, {
     method: "POST",
@@ -189,9 +197,19 @@ async function callGemini(parts) {
       generationConfig: { responseMimeType: "application/json" },
     }),
   });
+
   if (!res.ok) {
     const text = await res.text();
-    throw new Error(`Gemini 호출 실패 (${res.status}): ${text}`);
+    const isRateLimited = res.status === 429 || res.status === 503;
+    if (isRateLimited && attempt < MAX_ATTEMPTS) {
+      // 2초, 4초 순서로 대기 후 재시도(지수 백오프)
+      await sleep(2000 * attempt);
+      return callGemini(parts, attempt + 1);
+    }
+    const friendly = isRateLimited
+      ? "지금 채점 요청이 많이 몰려서 잠시 기다려야 해요. 30초 정도 후에 다시 제출해 주세요."
+      : `Gemini 호출 실패 (${res.status}): ${text}`;
+    throw new Error(friendly);
   }
   const data = await res.json();
   const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
@@ -255,7 +273,7 @@ exports.handler = async (event) => {
       return { statusCode: 422, body: JSON.stringify({ error: "채점할 수 없는 문항 형식입니다." }) };
     }
   } catch (e) {
-    return { statusCode: 502, body: JSON.stringify({ error: "AI 채점 중 오류가 발생했습니다: " + e.message }) };
+    return { statusCode: 502, body: JSON.stringify({ error: e.message }) };
   }
 
   const { count } = await supabase

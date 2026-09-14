@@ -853,3 +853,34 @@ button {
   font-weight: 500;
   font-size: 12px;
 }
+
+/* ---------- 사용량 배너 ---------- */
+
+.usage-banner {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px 16px;
+  border-radius: 8px;
+  margin-bottom: 18px;
+  font-size: 13px;
+}
+
+.usage-count {
+  font-weight: 600;
+}
+
+.usage-ok {
+  background: var(--sage-bg);
+  color: var(--sage);
+}
+
+.usage-warn {
+  background: #fdf3e0;
+  color: var(--gold);
+}
+
+.usage-danger {
+  background: var(--red-bg);
+  color: var(--red);
+}

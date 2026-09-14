@@ -3,12 +3,32 @@ import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext.jsx";
 
 export default function TeacherDashboardPage() {
-  const { supabase, teacher } = useAuth();
+  const { supabase, teacher, session } = useAuth();
   const [classes, setClasses] = useState([]);
   const [selectedClassId, setSelectedClassId] = useState(null);
   const [students, setStudents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [usage, setUsage] = useState(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function loadUsage() {
+      try {
+        const res = await fetch("/.netlify/functions/usage-status", {
+          headers: { Authorization: `Bearer ${session.token}` },
+        });
+        const data = await res.json();
+        if (!cancelled && res.ok) setUsage(data);
+      } catch {
+        // 사용량 표시는 실패해도 나머지 화면에는 영향 없게 조용히 넘어간다.
+      }
+    }
+    loadUsage();
+    return () => {
+      cancelled = true;
+    };
+  }, [session]);
 
   useEffect(() => {
     let cancelled = false;
@@ -74,6 +94,10 @@ export default function TeacherDashboardPage() {
         + 학생 일괄 등록
       </Link>
 
+      {usage && (
+        <UsageBanner today={usage.today_count} limit={usage.estimated_daily_limit} />
+      )}
+
       {classes.length === 0 && !loading && (
         <div className="empty-state">
           아직 등록된 학급이 없어요. 학급과 학생 등록은 관리자에게 문의해 주세요.
@@ -133,6 +157,24 @@ export default function TeacherDashboardPage() {
       {!loading && classes.length > 0 && students.length === 0 && !error && (
         <div className="empty-state">이 학급에는 아직 등록된 학생이 없어요.</div>
       )}
+    </div>
+  );
+}
+
+function UsageBanner({ today, limit }) {
+  const ratio = limit > 0 ? today / limit : 0;
+  const level = ratio >= 0.9 ? "danger" : ratio >= 0.6 ? "warn" : "ok";
+  const messages = {
+    ok: "오늘 AI 채점 사용량은 여유가 있어요.",
+    warn: "오늘 AI 채점 사용량이 꽤 쌓였어요. 몰리는 시간대엔 채점이 잠깐 늦어질 수 있어요.",
+    danger: "오늘 AI 채점 사용량이 무료 한도에 가까워요. 채점 오류가 늘어날 수 있어요.",
+  };
+  return (
+    <div className={`usage-banner usage-${level}`}>
+      <span className="usage-count">
+        오늘 전체 채점 건수: {today}건 (예상 한도 약 {limit}건)
+      </span>
+      <span className="usage-message">{messages[level]}</span>
     </div>
   );
 }

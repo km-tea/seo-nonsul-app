@@ -75,6 +75,8 @@ cp .env.example .env
 - `SUPABASE_JWT_SECRET`: Settings > API > JWT Settings의 Legacy JWT secret
 - `GEMINI_API_KEY`: Google AI Studio에서 발급 (모델은 `GEMINI_MODEL`로 조정 가능)
 - `ADMIN_SECRET`: 교사 계정이 하나도 없을 때 최초 교사 계정을 만들기 위한 비상용 키
+- `TEACHER_SIGNUP_CODE`: 교사가 `/teacher/signup`에서 스스로 가입할 때 입력해야 하는 코드 (필요한 사람에게만 알려주기)
+- `GEMINI_DAILY_ESTIMATED_LIMIT`: 교사 대시보드에 "오늘 전체 채점 건수 / 예상 한도"를 보여줄 때 쓰는 기준값(기본 300, 무료 키 상황에 맞게 조정 가능)
 
 ### 3) 로컬 설치 및 실행
 
@@ -103,7 +105,13 @@ insert into public.students (student_number, password_hash, name, grade)
 values ('10101', '<위에서 나온 해시>', '테스트학생', 1);
 ```
 
-**교사 계정** (최초 1명은 SQL로 직접 만들어야 합니다)
+**교사 계정 만들기 - 두 가지 방법**
+
+방법 A) **회원가입 화면 사용(권장)** — `/teacher/signup`에서 아이디/비밀번호/이름/학교명과
+`.env`의 `TEACHER_SIGNUP_CODE`에 정해둔 가입 코드를 입력하면 바로 계정이 만들어집니다.
+이 코드는 필요한 선생님에게만 알려주세요.
+
+방법 B) SQL로 직접 만들기(최초 1명을 코드 공유 없이 만들고 싶을 때)
 
 ```
 node scripts/hash-password.cjs 교사비번1234 teacher
@@ -144,7 +152,8 @@ update public.students set class_id = '<위 class id>' where student_number = '1
    (모두 `netlify.toml`에 이미 지정돼 있어 자동으로 채워집니다)
 3. **환경변수 등록**: Site configuration → Environment variables에서 `.env`에 채운 값들을
    그대로 하나씩 등록 (`VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, `SUPABASE_URL`,
-   `SUPABASE_SERVICE_ROLE_KEY`, `SUPABASE_JWT_SECRET`, `GEMINI_API_KEY`, `GEMINI_MODEL`, `ADMIN_SECRET`)
+   `SUPABASE_SERVICE_ROLE_KEY`, `SUPABASE_JWT_SECRET`, `GEMINI_API_KEY`, `GEMINI_MODEL`, `ADMIN_SECRET`,
+   `TEACHER_SIGNUP_CODE`, `GEMINI_DAILY_ESTIMATED_LIMIT`)
 4. **배포**: 저장하면 자동으로 빌드/배포가 시작됩니다. 완료되면 `https://무작위이름.netlify.app`
    주소가 생깁니다 - Site configuration에서 이름을 바꾸거나 커스텀 도메인을 연결할 수 있습니다.
 5. **이후 업데이트**: GitHub 저장소에 새 코드를 push할 때마다 자동으로 재배포됩니다

@@ -4,6 +4,7 @@ import { useAuth } from "./context/AuthContext.jsx";
 import TopBar from "./components/TopBar.jsx";
 import LoginPage from "./pages/LoginPage.jsx";
 import TeacherLoginPage from "./pages/TeacherLoginPage.jsx";
+import TeacherSignupPage from "./pages/TeacherSignupPage.jsx";
 import TeacherDashboardPage from "./pages/TeacherDashboardPage.jsx";
 import TeacherAddStudentsPage from "./pages/TeacherAddStudentsPage.jsx";
 import ItemListPage from "./pages/ItemListPage.jsx";
@@ -33,6 +34,7 @@ export default function App() {
       <Routes>
         <Route path="/login" element={<LoginPage />} />
         <Route path="/teacher/login" element={<TeacherLoginPage />} />
+        <Route path="/teacher/signup" element={<TeacherSignupPage />} />
 
         <Route
           path="/"
