@@ -42,13 +42,16 @@ function partsHaveContent(parts) {
 
 export default function SolvePage() {
   const { itemId } = useParams();
-  const { supabase, session } = useAuth();
+  const { supabase, session, student } = useAuth();
   const navigate = useNavigate();
 
   const [item, setItem] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [draftLoaded, setDraftLoaded] = useState(false);
+
+  const draftKey = student ? `seo-nonsul-draft:${student.id}:${itemId}` : null;
 
   // raw_content / direct / image_only 용
   const [parts, setParts] = useState([emptyPart()]);
@@ -71,19 +74,35 @@ export default function SolvePage() {
       } else {
         setItem(data);
         const shape = getItemShape(data);
+        let initialParts = [emptyPart()];
         if (shape === "direct" && data.question?.conditions?.length) {
-          setParts(data.question.conditions.map(() => emptyPart()));
-        } else {
-          setParts([emptyPart()]);
+          initialParts = data.question.conditions.map(() => emptyPart());
         }
+        let initialStageMap = {};
         if (shape === "staged") {
-          const map = {};
           (data.staged_questions || []).forEach((s) => {
             const n = s.conditions && s.conditions.length ? s.conditions.length : 1;
-            map[s.stage] = Array.from({ length: n }, emptyPart);
+            initialStageMap[s.stage] = Array.from({ length: n }, emptyPart);
           });
-          setStagePartsMap(map);
         }
+
+        // 임시저장된 답이 있으면 불러와서 이어 쓸 수 있게 한다.
+        if (draftKey) {
+          try {
+            const raw = localStorage.getItem(draftKey);
+            if (raw) {
+              const draft = JSON.parse(raw);
+              if (draft.parts) initialParts = draft.parts;
+              if (draft.stagePartsMap) initialStageMap = draft.stagePartsMap;
+            }
+          } catch {
+            // 임시저장 데이터가 깨져있으면 그냥 무시하고 새로 시작한다.
+          }
+        }
+
+        setParts(initialParts);
+        setStagePartsMap(initialStageMap);
+        setDraftLoaded(true);
       }
       setLoading(false);
     }
@@ -92,6 +111,21 @@ export default function SolvePage() {
       cancelled = true;
     };
   }, [supabase, itemId]);
+
+  // 답을 쓰는 동안 자동으로 임시저장한다(페이지를 벗어나도 다음에 이어 쓸 수 있게).
+  useEffect(() => {
+    if (!draftKey || !draftLoaded) return;
+    const hasContent = partsHaveContent(parts) || Object.values(stagePartsMap).some(partsHaveContent);
+    try {
+      if (hasContent) {
+        localStorage.setItem(draftKey, JSON.stringify({ parts, stagePartsMap }));
+      } else {
+        localStorage.removeItem(draftKey);
+      }
+    } catch {
+      // 저장 공간이 꽉 찼거나 하는 경우는 조용히 무시(임시저장은 편의 기능일 뿐이라서)
+    }
+  }, [draftKey, draftLoaded, parts, stagePartsMap]);
 
   async function handleSubmit() {
     setSubmitting(true);
@@ -127,6 +161,13 @@ export default function SolvePage() {
         return;
       }
       navigate(`/items/${itemId}/explain`);
+      if (draftKey) {
+        try {
+          localStorage.removeItem(draftKey);
+        } catch {
+          // 무시해도 되는 실패
+        }
+      }
     } catch {
       setError("서버에 연결할 수 없습니다. 잠시 후 다시 시도해 주세요.");
     } finally {
@@ -165,6 +206,7 @@ export default function SolvePage() {
       {error && <p className="error-text">{error}</p>}
 
       <div className="submit-row">
+        <span className="draft-saved-note">✓ 답안이 자동으로 임시저장돼요</span>
         <button
           className="btn-primary"
           style={{ width: "auto" }}

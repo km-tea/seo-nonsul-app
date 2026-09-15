@@ -66,7 +66,7 @@ export default function TeacherAddStudentsPage() {
         setError(data.error || "학생 등록 중 문제가 생겼습니다.");
         return;
       }
-      setResult(data.created);
+      setResult({ created: data.created, failures: data.failures || [] });
       setClassName("");
       setGrade("");
       setRawList("");
@@ -158,27 +158,50 @@ export default function TeacherAddStudentsPage() {
 
       {result && (
         <div className="explain-section">
-          <h3>등록 완료 ({result.length}명)</h3>
+          <h3>등록 완료 ({result.created.length}명)</h3>
           <p style={{ fontSize: 13, color: "var(--ink-soft)", marginBottom: 10 }}>
             학생들에게 학번과 방금 입력한 비밀번호를 알려주세요(비밀번호는 암호화되어 저장되므로
             여기서 다시 확인할 수 없어요 — 나눠준 목록을 따로 보관해 두시는 걸 권장합니다).
           </p>
-          <table className="student-table">
-            <thead>
-              <tr>
-                <th>학번</th>
-                <th>이름</th>
-              </tr>
-            </thead>
-            <tbody>
-              {result.map((r) => (
-                <tr key={r.id}>
-                  <td>{r.student_number}</td>
-                  <td>{r.name}</td>
+          {result.created.length > 0 && (
+            <table className="student-table">
+              <thead>
+                <tr>
+                  <th>학번</th>
+                  <th>이름</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {result.created.map((r) => (
+                  <tr key={r.id}>
+                    <td>{r.student_number}</td>
+                    <td>{r.name}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+          {result.failures.length > 0 && (
+            <>
+              <h3 style={{ color: "var(--red)" }}>등록 실패 ({result.failures.length}명)</h3>
+              <table className="student-table">
+                <thead>
+                  <tr>
+                    <th>학번</th>
+                    <th>사유</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {result.failures.map((f, i) => (
+                    <tr key={i}>
+                      <td>{f.student_number}</td>
+                      <td style={{ color: "var(--red)" }}>{f.error}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </>
+          )}
         </div>
       )}
     </div>

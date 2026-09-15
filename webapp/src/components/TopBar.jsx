@@ -15,6 +15,7 @@ export default function TopBar() {
         서논술형 학습장{isTeacher ? " · 교사용" : ""}
       </Link>
       <div className="who">
+        {!isTeacher && <Link to="/mypage">마이페이지</Link>}
         <span>{displayName}님</span>
         <button onClick={logout}>로그아웃</button>
       </div>

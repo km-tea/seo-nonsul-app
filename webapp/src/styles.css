@@ -371,9 +371,16 @@ button {
 
 .submit-row {
   display: flex;
+  align-items: center;
   justify-content: flex-end;
   gap: 10px;
   margin-top: 24px;
+}
+
+.draft-saved-note {
+  margin-right: auto;
+  font-size: 12px;
+  color: var(--ink-soft);
 }
 
 /* ---------- 해설(첨삭) 화면 ---------- */
@@ -883,4 +890,200 @@ button {
 .usage-danger {
   background: var(--red-bg);
   color: var(--red);
+}
+
+/* ---------- 교사 대시보드 액션 버튼줄 ---------- */
+
+.dashboard-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 18px;
+}
+
+.dashboard-actions .btn-secondary {
+  text-decoration: none;
+  display: inline-block;
+}
+
+.table-view-btn {
+  font-size: 12px;
+  padding: 5px 12px;
+  text-decoration: none;
+  display: inline-block;
+}
+
+/* ---------- 인라인 폼(비밀번호 재설정 등) ---------- */
+
+.inline-form {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.inline-form input {
+  padding: 8px 10px;
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  background: var(--paper);
+  font-family: inherit;
+  font-size: 14px;
+}
+
+.inline-form-msg {
+  font-size: 13px;
+  color: var(--sage);
+  flex-basis: 100%;
+}
+
+/* ---------- 학생 제출 카드(교사 상세보기) ---------- */
+
+.submission-card {
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  padding: 18px 20px;
+  margin-bottom: 16px;
+  background: #fffdf7;
+}
+
+.submission-card-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 14px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--rule);
+}
+
+.submission-score {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 18px;
+  white-space: nowrap;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}
+
+.edited-badge {
+  font-family: var(--font-body);
+  font-weight: 500;
+  font-size: 11px;
+  color: var(--gold);
+  border: 1px solid var(--gold);
+  border-radius: 999px;
+  padding: 1px 8px;
+}
+
+.edit-submission-form {
+  border-top: 1px dashed var(--rule);
+  padding-top: 14px;
+  margin-top: 4px;
+}
+
+.edit-score-row {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 14px;
+}
+
+.edit-score-row label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 13px;
+  color: var(--ink-soft);
+}
+
+.edit-score-row input {
+  width: 80px;
+  padding: 8px 10px;
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 14px;
+}
+
+.edit-feedback-label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 13px;
+  color: var(--ink-soft);
+}
+
+.edit-feedback-label textarea {
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 100px;
+  padding: 10px 12px;
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 14px;
+  color: var(--ink);
+  line-height: 1.7;
+}
+
+/* ---------- 학생 마이페이지 ---------- */
+
+.mypage-summary {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.mypage-stat {
+  flex: 1;
+  background: #fffdf7;
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  padding: 18px;
+  text-align: center;
+}
+
+.mypage-stat-num {
+  font-family: var(--font-display);
+  font-size: 28px;
+  font-weight: 700;
+}
+
+.mypage-stat-label {
+  font-size: 12px;
+  color: var(--ink-soft);
+  margin-top: 4px;
+}
+
+.mypage-subject-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 24px;
+}
+
+.mypage-subject-card {
+  background: var(--paper-dim);
+  border-radius: 8px;
+  padding: 10px 16px;
+  min-width: 90px;
+}
+
+.mypage-subject-name {
+  font-size: 12px;
+  color: var(--ink-soft);
+}
+
+.mypage-subject-avg {
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.mypage-subject-count {
+  font-size: 11px;
+  color: var(--ink-soft);
 }

@@ -65,7 +65,9 @@ export default function TeacherDashboardPage() {
       setError("");
       const { data, error: err } = await supabase
         .from("students")
-        .select("id, student_number, name, submissions(score, max_score, item_id)")
+        .select(
+          "id, student_number, name, submissions(score, max_score, item_id, graded_at, items(title, subject))"
+        )
         .eq("class_id", selectedClassId)
         .order("student_number", { ascending: true });
       if (cancelled) return;
@@ -83,20 +85,59 @@ export default function TeacherDashboardPage() {
     };
   }, [supabase, selectedClassId]);
 
+  function downloadCsv() {
+    const cls = classes.find((c) => c.id === selectedClassId);
+    const rows = [["학번", "이름", "과목", "문항명", "점수", "만점", "채점일시"]];
+    students.forEach((s) => {
+      const subs = s.submissions ?? [];
+      if (subs.length === 0) {
+        rows.push([s.student_number, s.name, "", "", "", "", ""]);
+        return;
+      }
+      subs.forEach((sub) => {
+        rows.push([
+          s.student_number,
+          s.name,
+          sub.items?.subject ?? "",
+          sub.items?.title ?? "",
+          sub.score ?? "",
+          sub.max_score ?? "",
+          sub.graded_at ? new Date(sub.graded_at).toLocaleString("ko-KR") : "",
+        ]);
+      });
+    });
+    const csv = rows
+      .map((r) => r.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(","))
+      .join("\n");
+    const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `성적_${cls ? cls.grade + "학년_" + cls.class_name : "전체"}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
   return (
     <div>
       <h1 style={{ fontSize: 20, marginBottom: 4 }}>{teacher?.name ?? teacher?.login_id}님의 학급</h1>
-      <p style={{ color: "var(--ink-soft)", fontSize: 14, marginBottom: 18 }}>
-        {teacher?.school_name}
-      </p>
+      <p style={{ color: "var(--ink-soft)", fontSize: 14, marginBottom: 18 }}>{teacher?.school_name}</p>
 
-      <Link to="/teacher/students/new" className="btn-secondary" style={{ display: "inline-block", marginBottom: 18 }}>
-        + 학생 일괄 등록
-      </Link>
+      <div className="dashboard-actions">
+        <Link to="/teacher/students/new" className="btn-secondary">
+          + 학생 일괄 등록
+        </Link>
+        <Link to="/teacher/settings" className="btn-secondary">
+          내 계정 설정
+        </Link>
+        {students.length > 0 && (
+          <button className="btn-secondary" onClick={downloadCsv}>
+            성적 다운로드(CSV)
+          </button>
+        )}
+      </div>
 
-      {usage && (
-        <UsageBanner today={usage.today_count} limit={usage.estimated_daily_limit} />
-      )}
+      {usage && <UsageBanner today={usage.today_count} limit={usage.estimated_daily_limit} />}
 
       {classes.length === 0 && !loading && (
         <div className="empty-state">
@@ -129,6 +170,7 @@ export default function TeacherDashboardPage() {
               <th>이름</th>
               <th>제출 문항 수</th>
               <th>평균 점수</th>
+              <th></th>
             </tr>
           </thead>
           <tbody>
@@ -137,9 +179,7 @@ export default function TeacherDashboardPage() {
               const solvedItems = new Set(subs.map((x) => x.item_id)).size;
               const avg =
                 subs.length > 0
-                  ? Math.round(
-                      (subs.reduce((sum, x) => sum + (x.score ?? 0), 0) / subs.length) * 10
-                    ) / 10
+                  ? Math.round((subs.reduce((sum, x) => sum + (x.score ?? 0), 0) / subs.length) * 10) / 10
                   : null;
               return (
                 <tr key={s.id}>
@@ -147,6 +187,11 @@ export default function TeacherDashboardPage() {
                   <td>{s.name}</td>
                   <td>{solvedItems}</td>
                   <td>{avg != null ? `${avg}점` : "-"}</td>
+                  <td>
+                    <Link to={`/teacher/students/${s.id}`} className="btn-secondary table-view-btn">
+                      보기
+                    </Link>
+                  </td>
                 </tr>
               );
             })}

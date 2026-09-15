@@ -24,18 +24,19 @@ exports.handler = async (event) => {
     return { statusCode: 400, body: JSON.stringify({ error: "요청 형식이 올바르지 않습니다." }) };
   }
 
-  const { student_number, password } = body;
-  if (!student_number || !password) {
+  const { student_number, password, school_name } = body;
+  if (!student_number || !password || !school_name) {
     return {
       statusCode: 400,
-      body: JSON.stringify({ error: "학번과 비밀번호를 모두 입력해 주세요." }),
+      body: JSON.stringify({ error: "학교, 학번, 비밀번호를 모두 입력해 주세요." }),
     };
   }
 
   const { data: student, error } = await supabase
     .from("students")
-    .select("id, student_number, password_hash, name, grade, class_id")
+    .select("id, student_number, password_hash, name, grade, class_id, school_name")
     .eq("student_number", student_number)
+    .eq("school_name", school_name)
     .maybeSingle();
 
   if (error) {
@@ -72,6 +73,7 @@ exports.handler = async (event) => {
         student_number: student.student_number,
         name: student.name,
         grade: student.grade,
+        school_name: student.school_name,
       },
     }),
   };

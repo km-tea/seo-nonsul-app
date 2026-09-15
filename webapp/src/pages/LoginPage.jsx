@@ -1,13 +1,35 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Link, Navigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext.jsx";
 
 export default function LoginPage() {
   const { isLoggedIn, loginAsStudent } = useAuth();
+  const [schools, setSchools] = useState([]);
+  const [schoolName, setSchoolName] = useState("");
   const [studentNumber, setStudentNumber] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [schoolsLoading, setSchoolsLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function loadSchools() {
+      try {
+        const res = await fetch("/.netlify/functions/list-schools");
+        const data = await res.json();
+        if (!cancelled && res.ok) setSchools(data.schools || []);
+      } catch {
+        // 학교 목록을 못 불러와도 로그인 폼 자체는 그대로 보여준다(직접 입력 없이 재시도만 가능)
+      } finally {
+        if (!cancelled) setSchoolsLoading(false);
+      }
+    }
+    loadSchools();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   if (isLoggedIn) return <Navigate to="/" replace />;
 
@@ -19,7 +41,7 @@ export default function LoginPage() {
       const res = await fetch("/.netlify/functions/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ student_number: studentNumber, password }),
+        body: JSON.stringify({ school_name: schoolName, student_number: studentNumber, password }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -37,8 +59,26 @@ export default function LoginPage() {
   return (
     <div className="login-card">
       <h1>서논술형 학습장</h1>
-      <p className="sub">학번과 비밀번호로 로그인하세요.</p>
+      <p className="sub">학교, 학번, 비밀번호로 로그인하세요.</p>
       <form onSubmit={handleSubmit}>
+        <div className="field">
+          <label htmlFor="school_name">학교</label>
+          <select
+            id="school_name"
+            value={schoolName}
+            onChange={(e) => setSchoolName(e.target.value)}
+            required
+          >
+            <option value="" disabled>
+              {schoolsLoading ? "불러오는 중..." : "학교를 선택하세요"}
+            </option>
+            {schools.map((s) => (
+              <option key={s} value={s}>
+                {s}
+              </option>
+            ))}
+          </select>
+        </div>
         <div className="field">
           <label htmlFor="student_number">학번</label>
           <input

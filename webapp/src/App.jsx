@@ -7,6 +7,9 @@ import TeacherLoginPage from "./pages/TeacherLoginPage.jsx";
 import TeacherSignupPage from "./pages/TeacherSignupPage.jsx";
 import TeacherDashboardPage from "./pages/TeacherDashboardPage.jsx";
 import TeacherAddStudentsPage from "./pages/TeacherAddStudentsPage.jsx";
+import TeacherStudentDetailPage from "./pages/TeacherStudentDetailPage.jsx";
+import TeacherSettingsPage from "./pages/TeacherSettingsPage.jsx";
+import StudentMyPage from "./pages/StudentMyPage.jsx";
 import ItemListPage from "./pages/ItemListPage.jsx";
 import SolvePage from "./pages/SolvePage.jsx";
 import ExplainPage from "./pages/ExplainPage.jsx";
@@ -60,6 +63,14 @@ export default function App() {
             </RequireStudent>
           }
         />
+        <Route
+          path="/mypage"
+          element={
+            <RequireStudent>
+              <StudentMyPage />
+            </RequireStudent>
+          }
+        />
 
         <Route
           path="/teacher"
@@ -74,6 +85,22 @@ export default function App() {
           element={
             <RequireTeacher>
               <TeacherAddStudentsPage />
+            </RequireTeacher>
+          }
+        />
+        <Route
+          path="/teacher/students/:studentId"
+          element={
+            <RequireTeacher>
+              <TeacherStudentDetailPage />
+            </RequireTeacher>
+          }
+        />
+        <Route
+          path="/teacher/settings"
+          element={
+            <RequireTeacher>
+              <TeacherSettingsPage />
             </RequireTeacher>
           }
         />

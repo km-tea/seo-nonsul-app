@@ -21,7 +21,12 @@ webapp/
     login.js               학번+비밀번호 검증 -> 학생용 JWT 발급
     teacher-login.js        아이디+비밀번호 검증 -> 교사용 JWT 발급(app_role: "teacher")
     grade-answer.js         Gemini 채점(텍스트/이미지 모두 지원) -> submissions 저장
-    create-students.js      학생 일괄 등록(교사 본인 토큰 또는 ADMIN_SECRET으로 호출)
+    create-students.js      학생 일괄 등록(교사 본인 토큰 또는 ADMIN_SECRET으로 호출) - 학번은
+                             같은 학교 안에서만 유일하면 됨(다른 학교끼리는 겹쳐도 됨)
+    list-schools.js         로그인 화면의 "학교 선택" 드롭다운용 학교 목록 조회(비로그인 접근 가능)
+    update-submission.js    교사가 AI 채점 점수/피드백을 직접 수정
+    reset-password.js       학생 비밀번호 재설정(교사가) / 교사 본인 비밀번호 변경
+    usage-status.js         오늘 전체 채점 건수 조회(대시보드 사용량 배너용)
   scripts/hash-password.cjs  계정 1명 수동 생성할 때 쓰는 비밀번호 해시 도구
 ```
 
@@ -58,7 +63,9 @@ Supabase 프로젝트의 JWT Secret으로 토큰을 발급합니다.
 아래 순서대로 SQL을 실행합니다(전부 몇 번을 재실행해도 안전하게 작성돼 있습니다).
 
 1. `supabase_schema.sql` - 테이블 + 기본 RLS 정책
-2. `webapp_teacher_patch.sql` - 교사 로그인용 RLS 정책 보강 (**신규, 꼭 실행**)
+2. `webapp_teacher_patch.sql` - 교사 로그인용 RLS 정책 보강
+3. `webapp_patch2.sql` - 교사가 채점 결과를 수정했는지 표시하는 컬럼 추가
+4. `webapp_patch3.sql` - 학생 로그인에 학교 선택 추가(학번을 "학교 단위"로 구분) (**신규, 꼭 실행**)
 3. 문항 시드 데이터 (`items_전체_통합_시드.sql` 등, 이미 넣으셨다면 생략)
 4. 이미지 연결 update문들 (`*_update.sql`, 이미 넣으셨다면 생략)
 
@@ -92,7 +99,8 @@ netlify dev
 
 ### 4) 테스트 계정 만들기
 
-**학생 계정**
+**학생 계정** (교사 계정을 먼저 만든 뒤, 그 학교명과 똑같이 맞춰서 넣어야 로그인 화면의
+학교 목록에서 선택할 수 있습니다)
 
 ```
 node scripts/hash-password.cjs 테스트비번1234
@@ -101,8 +109,8 @@ node scripts/hash-password.cjs 테스트비번1234
 출력된 해시값을 TablePlus(SQL Editor)에서:
 
 ```sql
-insert into public.students (student_number, password_hash, name, grade)
-values ('10101', '<위에서 나온 해시>', '테스트학생', 1);
+insert into public.students (student_number, password_hash, name, grade, school_name)
+values ('10101', '<위에서 나온 해시>', '테스트학생', 1, '<교사 계정 만들 때 쓴 학교명과 정확히 동일하게>');
 ```
 
 **교사 계정 만들기 - 두 가지 방법**
@@ -167,6 +175,6 @@ update public.students set class_id = '<위 class id>' where student_number = '1
 
 ## 아직 안 만든 것 (다음 단계 후보)
 
-- 교사가 화면에서 직접 학급/학생을 추가하는 UI (지금은 함수 API 호출 또는 SQL로만 가능)
-- 재시도 이력 비교, 학급 전체 통계/그래프
-- 학생 비밀번호 찾기/변경 기능
+- 재시도(여러 번 풀기) 이력 비교, 학급 전체 통계/그래프
+- 학생이 직접 비밀번호를 바꾸는 기능(현재는 교사가 대신 재설정)
+- 문항 자체를 교사가 화면에서 새로 추가/수정하는 기능(지금은 SQL로만 가능)
