@@ -244,7 +244,7 @@ function RawContentSolver({ item, parts, setParts }) {
       {showText && (
         <div className="stimulus-box">
           {hasFallbackText ? (
-            <TextBlock text={fallbackText} />
+            <TextBlock text={fallbackText} showReadAloud />
           ) : (
             <>
               <TextBlock text={item.title} />
@@ -288,7 +288,7 @@ function DirectSolver({ item, parts, setParts }) {
     <div>
       <div className="stimulus-box">
         {hasContent ? (
-          <TextBlock text={q.prompt} />
+          <TextBlock text={q.prompt} showReadAloud />
         ) : (
           <>
             <TextBlock text={item.title} />
@@ -332,7 +332,7 @@ function StagedSolver({ item, stagePartsMap, setStagePartsMap }) {
             <span className="stage-points">{stage.points}점</span>
             <span className="stage-label">{stage.label}</span>
             {hasContent ? (
-              <TextBlock text={stage.prompt} />
+              <TextBlock text={stage.prompt} showReadAloud />
             ) : (
               <p className="missing-content-note">
                 이 단계는 상세 지문이 아직 등록되지 않았어요. 위 제목을 참고해서 답을 써 보세요.

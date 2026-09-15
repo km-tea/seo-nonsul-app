@@ -259,6 +259,11 @@ button {
   text-decoration: underline;
 }
 
+.item-main {
+  flex: 1;
+  min-width: 0;
+}
+
 .item-main .item-domain {
   font-size: 12px;
   color: var(--ink-soft);
@@ -1086,4 +1091,155 @@ button {
 .mypage-subject-count {
   font-size: 11px;
   color: var(--ink-soft);
+}
+
+/* ---------- 과제 표시(학생 목록 화면) ---------- */
+
+.assignments-box {
+  background: var(--sage-bg);
+  border-radius: var(--radius);
+  padding: 16px 18px;
+  margin-bottom: 22px;
+}
+
+.assignments-box-title {
+  font-family: var(--font-display);
+  font-weight: 600;
+  color: var(--sage);
+  margin-bottom: 10px;
+}
+
+.assignment-item-group {
+  margin-bottom: 10px;
+}
+
+.assignment-item-group:last-child {
+  margin-bottom: 0;
+}
+
+.assignment-item-group-head {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink);
+  margin-bottom: 4px;
+}
+
+.assignment-due {
+  font-weight: 400;
+  color: var(--ink-soft);
+  margin-left: 6px;
+}
+
+.assignment-link-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  text-decoration: none;
+  color: var(--ink);
+  padding: 6px 4px;
+  font-size: 14px;
+  border-bottom: 1px solid rgba(43, 42, 40, 0.08);
+}
+
+.assignment-link-row:last-child {
+  border-bottom: none;
+}
+
+/* ---------- 즐겨찾기 별 ---------- */
+
+.bookmark-star {
+  flex: none;
+  background: none;
+  border: none;
+  font-size: 20px;
+  color: var(--rule);
+  padding: 0 10px 0 0;
+  line-height: 1;
+}
+
+.bookmark-star.active {
+  color: var(--gold);
+}
+
+/* ---------- 과제 지정 - 문항 선택 행 ---------- */
+
+.assignment-pick-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+}
+
+.assignment-pick-row input[type="checkbox"] {
+  flex: none;
+  width: 18px;
+  height: 18px;
+}
+
+/* ---------- 학급 통계 ---------- */
+
+.stats-row {
+  margin-bottom: 16px;
+}
+
+.stats-bar-track {
+  height: 6px;
+  background: var(--paper-dim);
+  border-radius: 999px;
+  overflow: hidden;
+  margin-bottom: 6px;
+}
+
+.stats-bar-fill {
+  height: 100%;
+  border-radius: 999px;
+}
+
+.stats-bar-fill.low {
+  background: var(--red);
+}
+
+.stats-bar-fill.mid {
+  background: var(--gold);
+}
+
+.stats-bar-fill.high {
+  background: var(--sage);
+}
+
+.stats-row-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+}
+
+.stats-row-pct {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 16px;
+  white-space: nowrap;
+}
+
+.stats-row-attempts {
+  font-family: var(--font-body);
+  font-weight: 400;
+  font-size: 11px;
+  color: var(--ink-soft);
+}
+
+/* ---------- 읽어주기 버튼 ---------- */
+
+.read-aloud-btn {
+  display: inline-block;
+  margin-bottom: 10px;
+  background: var(--paper-dim);
+  border: 1px solid var(--rule);
+  border-radius: 999px;
+  padding: 5px 14px;
+  font-size: 13px;
+  color: var(--ink);
+}
+
+.read-aloud-btn:hover {
+  background: var(--paper);
 }

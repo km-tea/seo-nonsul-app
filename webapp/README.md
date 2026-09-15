@@ -24,6 +24,8 @@ webapp/
     create-students.js      학생 일괄 등록(교사 본인 토큰 또는 ADMIN_SECRET으로 호출) - 학번은
                              같은 학교 안에서만 유일하면 됨(다른 학교끼리는 겹쳐도 됨)
     list-schools.js         로그인 화면의 "학교 선택" 드롭다운용 학교 목록 조회(비로그인 접근 가능)
+    create-assignment.js    교사가 학급에 과제(문항 묶음+마감일) 지정 - 학교급 안 맞는 문항은 거부
+    class-stats.js          학급의 문항별 평균 점수(낮은 순) 조회
     update-submission.js    교사가 AI 채점 점수/피드백을 직접 수정
     reset-password.js       학생 비밀번호 재설정(교사가) / 교사 본인 비밀번호 변경
     usage-status.js         오늘 전체 채점 건수 조회(대시보드 사용량 배너용)
@@ -65,7 +67,8 @@ Supabase 프로젝트의 JWT Secret으로 토큰을 발급합니다.
 1. `supabase_schema.sql` - 테이블 + 기본 RLS 정책
 2. `webapp_teacher_patch.sql` - 교사 로그인용 RLS 정책 보강
 3. `webapp_patch2.sql` - 교사가 채점 결과를 수정했는지 표시하는 컬럼 추가
-4. `webapp_patch3.sql` - 학생 로그인에 학교 선택 추가(학번을 "학교 단위"로 구분) (**신규, 꼭 실행**)
+4. `webapp_patch3.sql` - 학생 로그인에 학교 선택 추가(학번을 "학교 단위"로 구분)
+5. `webapp_patch4.sql` - 과제 지정 + 즐겨찾기 기능용 테이블 추가 (**신규, 꼭 실행**)
 3. 문항 시드 데이터 (`items_전체_통합_시드.sql` 등, 이미 넣으셨다면 생략)
 4. 이미지 연결 update문들 (`*_update.sql`, 이미 넣으셨다면 생략)
 
@@ -175,6 +178,8 @@ update public.students set class_id = '<위 class id>' where student_number = '1
 
 ## 아직 안 만든 것 (다음 단계 후보)
 
-- 재시도(여러 번 풀기) 이력 비교, 학급 전체 통계/그래프
+- 재시도(여러 번 풀기) 이력 비교, 개별 학생 성장 그래프
 - 학생이 직접 비밀번호를 바꾸는 기능(현재는 교사가 대신 재설정)
 - 문항 자체를 교사가 화면에서 새로 추가/수정하는 기능(지금은 SQL로만 가능)
+- 로그인 시도 횟수 제한(무차별 대입 방지)
+- 과제 삭제/수정 화면(현재는 새로 만들기만 가능)

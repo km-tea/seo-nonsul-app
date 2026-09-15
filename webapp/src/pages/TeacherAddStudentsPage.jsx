@@ -9,6 +9,7 @@ export default function TeacherAddStudentsPage() {
   const { session, teacher } = useAuth();
   const [className, setClassName] = useState("");
   const [grade, setGrade] = useState("");
+  const [schoolLevel, setSchoolLevel] = useState("초등학교");
   const [rawList, setRawList] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
@@ -58,6 +59,7 @@ export default function TeacherAddStudentsPage() {
         body: JSON.stringify({
           class_name: className,
           grade: grade ? Number(grade) : null,
+          school_level: schoolLevel,
           students: preview,
         }),
       });
@@ -97,6 +99,14 @@ export default function TeacherAddStudentsPage() {
             onChange={(e) => setClassName(e.target.value)}
             placeholder="예: 3반"
           />
+        </div>
+        <div className="field">
+          <label htmlFor="schoolLevel">학교급 (과제 지정 시 이 학교급 문항만 고를 수 있어요)</label>
+          <select id="schoolLevel" value={schoolLevel} onChange={(e) => setSchoolLevel(e.target.value)}>
+            <option value="초등학교">초등학교</option>
+            <option value="중학교">중학교</option>
+            <option value="고등학교">고등학교</option>
+          </select>
         </div>
         <div className="field">
           <label htmlFor="grade">학년(선택)</label>

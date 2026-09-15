@@ -49,7 +49,7 @@ exports.handler = async (event) => {
     return { statusCode: 401, body: JSON.stringify({ error: "권한이 없습니다." }) };
   }
 
-  const { class_name, grade, students } = body;
+  const { class_name, grade, school_level, students } = body;
   let teacher_login_id = body.teacher_login_id;
 
   if (!Array.isArray(students) || students.length === 0) {
@@ -100,7 +100,7 @@ exports.handler = async (event) => {
     } else {
       const { data: cls, error: clsErr } = await supabase
         .from("classes")
-        .insert({ teacher_id: teacherId, class_name, grade })
+        .insert({ teacher_id: teacherId, class_name, grade, school_level: school_level || null })
         .select()
         .single();
       if (clsErr) {

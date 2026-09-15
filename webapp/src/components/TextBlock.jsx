@@ -32,12 +32,38 @@ function normalizeSoftWraps(text) {
 // 문항 원문에는 스페이스로 줄을 맞춘 표(조어법 유형표 같은 것)가 섞여 있는 경우가 있다.
 // 일반 글꼴로 그대로 보여주면 정렬이 다 깨지므로, 문단 단위로 나눠서
 // "표처럼 보이는 문단"(공백 3칸 이상 또는 탭이 있는 문단)만 고정폭 글꼴로 보여준다.
-export default function TextBlock({ text }) {
+// showReadAloud를 켜면 브라우저 음성으로 읽어주는 버튼이 같이 뜬다(저학년 읽기 지원용).
+export default function TextBlock({ text, showReadAloud }) {
+  const [speaking, setSpeaking] = React.useState(false);
+
   if (!text) return null;
   const normalized = normalizeSoftWraps(text);
   const paragraphs = normalized.split(/\n{2,}/);
+
+  function toggleSpeak() {
+    if (!("speechSynthesis" in window)) return;
+    if (speaking) {
+      window.speechSynthesis.cancel();
+      setSpeaking(false);
+      return;
+    }
+    window.speechSynthesis.cancel();
+    const utter = new SpeechSynthesisUtterance(String(text));
+    utter.lang = "ko-KR";
+    utter.rate = 0.95;
+    utter.onend = () => setSpeaking(false);
+    utter.onerror = () => setSpeaking(false);
+    window.speechSynthesis.speak(utter);
+    setSpeaking(true);
+  }
+
   return (
     <>
+      {showReadAloud && "speechSynthesis" in window && (
+        <button type="button" className="read-aloud-btn" onClick={toggleSpeak}>
+          {speaking ? "⏹ 그만 읽기" : "🔊 읽어주기"}
+        </button>
+      )}
       {paragraphs.map((p, i) => {
         const looksLikeTable = /( {3,}|\t)/.test(p);
         return (

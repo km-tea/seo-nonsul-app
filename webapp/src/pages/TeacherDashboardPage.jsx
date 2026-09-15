@@ -127,6 +127,12 @@ export default function TeacherDashboardPage() {
         <Link to="/teacher/students/new" className="btn-secondary">
           + 학생 일괄 등록
         </Link>
+        <Link to="/teacher/assignments" className="btn-secondary">
+          과제 지정
+        </Link>
+        <Link to="/teacher/stats" className="btn-secondary">
+          학급 통계
+        </Link>
         <Link to="/teacher/settings" className="btn-secondary">
           내 계정 설정
         </Link>

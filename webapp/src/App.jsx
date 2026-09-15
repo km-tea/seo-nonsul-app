@@ -9,6 +9,8 @@ import TeacherDashboardPage from "./pages/TeacherDashboardPage.jsx";
 import TeacherAddStudentsPage from "./pages/TeacherAddStudentsPage.jsx";
 import TeacherStudentDetailPage from "./pages/TeacherStudentDetailPage.jsx";
 import TeacherSettingsPage from "./pages/TeacherSettingsPage.jsx";
+import TeacherAssignmentsPage from "./pages/TeacherAssignmentsPage.jsx";
+import TeacherClassStatsPage from "./pages/TeacherClassStatsPage.jsx";
 import StudentMyPage from "./pages/StudentMyPage.jsx";
 import ItemListPage from "./pages/ItemListPage.jsx";
 import SolvePage from "./pages/SolvePage.jsx";
@@ -101,6 +103,22 @@ export default function App() {
           element={
             <RequireTeacher>
               <TeacherSettingsPage />
+            </RequireTeacher>
+          }
+        />
+        <Route
+          path="/teacher/assignments"
+          element={
+            <RequireTeacher>
+              <TeacherAssignmentsPage />
+            </RequireTeacher>
+          }
+        />
+        <Route
+          path="/teacher/stats"
+          element={
+            <RequireTeacher>
+              <TeacherClassStatsPage />
             </RequireTeacher>
           }
         />
